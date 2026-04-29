@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Knowledge Quiz – Drug Abuse Awareness</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --maroon: #5c1a2e;
+    --maroon-d: #3a0f1c;
+    --gold: #b9913c;
+    --cream: #faf6f0;
+    --text: #2a1a20;
+    --muted: #7a6870;
+    --border: #e0d5c8;
+    --correct: #2d7a4f;
+    --correct-bg: #edf7f1;
+    --wrong: #b83232;
+    --wrong-bg: #fdf0f0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* INTRO */
+  #intro {
+    min-height: 100vh;
+    background: var(--maroon);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #intro::before, #intro::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(185,145,60,0.12);
+  }
+  #intro::before { width: 250px; height: 250px; top:-80px; right:-80px; }
+  #intro::after  { width: 180px; height: 180px; bottom:-40px; left:-40px; }
+
+  .intro-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+
+  #intro h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--cream);
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+
+  #intro p {
+    font-size: 14px;
+    color: rgba(250,246,240,0.72);
+    line-height: 1.6;
+    max-width: 300px;
+    margin: 0 auto 30px;
+  }
+
+  .rules-box {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(185,145,60,0.3);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 30px;
+    text-align: left;
+    max-width: 340px;
+    width: 100%;
+  }
+
+  .rules-box h3 {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .rules-box ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .rules-box li {
+    font-size: 13px;
+    color: rgba(250,246,240,0.8);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .rules-box li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .start-btn {
+    background: var(--gold);
+    color: var(--maroon-d);
+    border: none;
+    border-radius: 10px;
+    padding: 16px 40px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.15s;
+  }
+
+  .start-btn:active { transform: scale(0.97); }
+
+  /* QUIZ */
+  #quiz { min-height: 100vh; }
+
+  .quiz-header {
+    background: var(--maroon);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .q-counter {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  .quiz-progress-bg {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .quiz-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), #e2c06a);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+
+  .quiz-body {
+    padding: 24px 20px 40px;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  .q-number-badge {
+    display: inline-block;
+    background: var(--maroon);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  .q-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    color: var(--maroon);
+    line-height: 1.4;
+    margin-bottom: 22px;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .opt-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.1s;
+    line-height: 1.4;
+  }
+
+  .opt-btn:hover:not(:disabled) {
+    border-color: var(--maroon);
+    background: rgba(92,26,46,0.04);
+    transform: translateX(2px);
+  }
+
+  .opt-btn .opt-letter {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #f0ebe3;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    flex-shrink: 0;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .opt-btn.correct {
+    background: var(--correct-bg);
+    border-color: var(--correct);
+    color: var(--correct);
+  }
+
+  .opt-btn.correct .opt-letter {
+    background: var(--correct);
+    color: #fff;
+  }
+
+  .opt-btn.wrong {
+    background: var(--wrong-bg);
+    border-color: var(--wrong);
+    color: var(--wrong);
+  }
+
+  .opt-btn.wrong .opt-letter {
+    background: var(--wrong);
+    color: #fff;
+  }
+
+  .opt-btn:disabled { cursor: default; transform: none; }
+
+  /* Explanation box */
+  .explanation {
+    display: none;
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px 16px;
+    border-left: 4px solid var(--gold);
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #444;
+    margin-bottom: 20px;
+  }
+
+  .explanation.show { display: block; }
+
+  .explanation strong {
+    color: var(--maroon);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .next-btn {
+    width: 100%;
+    background: var(--maroon);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: none;
+    transition: opacity 0.15s;
+  }
+
+  .next-btn.show { display: block; }
+
+  /* RESULTS */
+  #results {
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+  }
+
+  .score-ring {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    position: relative;
+  }
+
+  .score-ring svg {
+    position: absolute;
+    top: 0; left: 0;
+    transform: rotate(-90deg);
+  }
+
+  .score-ring circle {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+  }
+
+  .score-ring .bg-c { stroke: #e0d5c8; }
+  .score-ring .fg-c {
+    stroke: var(--gold);
+    transition: stroke-dashoffset 1s ease;
+  }
+
+  .score-ring .score-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: var(--maroon);
+    z-index: 1;
+  }
+
+  .score-ring .score-denom {
+    font-size: 12px;
+    color: var(--muted);
+    z-index: 1;
+  }
+
+  #results h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: var(--maroon);
+    margin-bottom: 8px;
+  }
+
+  .result-msg {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 280px;
+    margin: 0 auto 24px;
+  }
+
+  .result-badge {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 28px;
+  }
+
+  .badge-pass { background: #edf7f1; color: var(--correct); border: 1.5px solid var(--correct); }
+  .badge-fail { background: #fdf0f0; color: var(--wrong); border: 1.5px solid var(--wrong); }
+
+  .result-breakdown {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: left;
+    max-width: 340px;
+    width: 100%;
+    margin: 0 auto 24px;
+    box-shadow: 0 2px 12px rgba(92,26,46,0.08);
+  }
+
+  .result-breakdown h3 {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+    font-weight: 700;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .breakdown-row:last-child { border-bottom: none; }
+
+  .breakdown-icon { font-size: 16px; }
+
+  .retry-btn {
+    background: var(--maroon);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 36px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div class="screen active" id="intro">
+  <div class="intro-tag">Shaqra University · Nursing Department</div>
+  <h1>Drug Abuse<br>Knowledge Quiz</h1>
+  <p>Test what you learned in today's health education session on drug abuse awareness and refusal skills.</p>
+
+  <div class="rules-box">
+    <h3>Quiz Rules</h3>
+    <ul>
+      <li>10 multiple-choice questions</li>
+      <li>Choose the best answer for each</li>
+      <li>Instant feedback after each answer</li>
+      <li>Pass mark: 7 out of 10 (70%)</li>
+    </ul>
+  </div>
+
+  <button class="start-btn" onclick="startQuiz()">Start Quiz →</button>
+</div>
+
+<!-- QUIZ -->
+<form name="quiz" method="POST" data-netlify="true" class="screen" id="quiz">
+  <input type="hidden" name="form-name" value="quiz">
+
+  <input type="hidden" name="score" id="scoreInput">
+  <input type="hidden" name="percentage" id="percentInput">
+
+  <div class="quiz-header">
+    <span class="q-counter" id="qCounter">Question 1 of 10</span>
+    <div class="quiz-progress-bg">
+      <div class="quiz-progress-fill" id="qFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body">
+    <div class="q-number-badge" id="qBadge">Q1 / 10</div>
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="optionsList"></div>
+
+    <div class="explanation" id="explanation"></div>
+
+    <button type="button" class="next-btn" id="nextBtn" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <button type="submit" id="finalSubmit" style="display:none;"></button>
+</form>
+
+<!-- RESULTS -->
+<div class="screen" id="results">
+  <div class="score-ring" id="scoreRing">
+    <svg width="140" height="140" viewBox="0 0 140 140">
+      <circle class="bg-c" cx="70" cy="70" r="62" />
+      <circle class="fg-c" id="scoreCircle" cx="70" cy="70" r="62"
+        stroke-dasharray="389.6" stroke-dashoffset="389.6" />
+    </svg>
+    <span class="score-num" id="scoreNum">0</span>
+    <span class="score-denom">out of 10</span>
+  </div>
+
+  <h2 id="resultTitle">Results</h2>
+  <p class="result-msg" id="resultMsg"></p>
+  <div class="result-badge" id="resultBadge"></div>
+
+  <div class="result-breakdown">
+    <h3>Your Score Breakdown</h3>
+    <div class="breakdown-row"><span>✅ Correct answers</span><span id="bCorrect" style="font-weight:700;color:#2d7a4f"></span></div>
+    <div class="breakdown-row"><span>❌ Incorrect answers</span><span id="bWrong" style="font-weight:700;color:#b83232"></span></div>
+    <div class="breakdown-row"><span>📊 Score percentage</span><span id="bPct" style="font-weight:700;color:var(--maroon)"></span></div>
+    <div class="breakdown-row"><span>🎯 Pass mark</span><span style="font-weight:700">7/10 (70%)</span></div>
+  </div>
+
+  <button class="retry-btn" onclick="resetQuiz()">Retake Quiz</button>
+</div>
+
+<script>
+const questions = [
+  {
+    q: "What is the definition of drug abuse?",
+    opts: [
+      "Taking medication exactly as prescribed by a doctor",
+      "The harmful or hazardous use of substances, whether illegal drugs or medications",
+      "Using an inhaler as directed for asthma",
+      "Drinking one alcoholic beverage at a social event"
+    ],
+    correct: 1,
+    explain: "Drug abuse refers to the harmful or hazardous use of substances. This is different from proper medication use or occasional social use."
+  },
+  {
+    q: "Which statement correctly distinguishes drug abuse from addiction?",
+    opts: [
+      "Drug abuse and addiction are exactly the same thing",
+      "Addiction means using drugs only once",
+      "Drug abuse does not necessarily mean addiction — addiction is a more severe, chronic condition involving compulsive use",
+      "Addiction only applies to illegal drugs, not prescription medications"
+    ],
+    correct: 2,
+    explain: "Drug abuse does not automatically mean addiction. Addiction is a chronic disease characterized by compulsive drug use and inability to stop despite harmful consequences."
+  },
+  {
+    q: "Genetics may account for what percentage of a person's risk of addiction?",
+    opts: ["10–20%", "25–35%", "40–60%", "70–80%"],
+    correct: 2,
+    explain: "Research shows genetics may account for 40–60% of addiction risk, making it a significant biological risk factor alongside psychological and social factors."
+  },
+  {
+    q: "Which of the following is a physical sign of addiction?",
+    opts: [
+      "Reading books more frequently",
+      "Shivering and red eyes",
+      "Improved personal hygiene",
+      "Increased appetite and regular sleep"
+    ],
+    correct: 1,
+    explain: "Physical signs of addiction include shivering, red eyes, and changes in physical appearance. Behavioral signs include poor hygiene and disrupted appetite and sleep patterns."
+  },
+  {
+    q: "A patient takes extra doses of their prescription painkiller beyond what their doctor prescribed. This is an example of:",
+    opts: [
+      "Substance use",
+      "Substance misuse",
+      "Substance abuse",
+      "Normal medical behavior"
+    ],
+    correct: 1,
+    explain: "Taking medication contrary to its intended purpose — such as taking extra doses — is substance misuse. Substance abuse involves harmful, regular patterns like illegal drug use or developing tolerance."
+  },
+  {
+    q: "According to the Health Belief Model, 'Perceived Barriers' in drug abuse education refers to:",
+    opts: [
+      "The patient's belief that they cannot get addicted",
+      "The health gains of sobriety such as improved relationships",
+      "Obstacles like stigma, cost of treatment, and fear of withdrawal that prevent seeking help",
+      "Physical symptoms of withdrawal"
+    ],
+    correct: 2,
+    explain: "Perceived Barriers in the HBM are the patient's personal obstacles to taking action — including stigma, financial concerns, and fear of the withdrawal process."
+  },
+  {
+    q: "In Bandura's Self-Efficacy Theory, 'Mastery Experiences' for a patient in recovery means:",
+    opts: [
+      "Watching recovery documentaries",
+      "Each sober day counts as a small win that builds confidence for future refusal",
+      "Being told by a nurse that recovery is possible",
+      "Learning about the dangers of drugs through lectures"
+    ],
+    correct: 1,
+    explain: "Mastery Experiences are personal accomplishments. In recovery, each sober day is a success that builds the patient's belief in their own ability to continue refusing drugs."
+  },
+  {
+    q: "A patient, when offered drugs, calmly says: 'No — I'm in recovery and that could seriously harm me.' Which refusal strategy is this?",
+    opts: [
+      "Broken Record",
+      "Blame Shifting",
+      "Giving a Reason",
+      "Delay Tactic"
+    ],
+    correct: 2,
+    explain: "'Giving a Reason' involves explaining clearly why you are refusing. In this case, sharing your recovery status as a reason is an assertive, honest strategy."
+  },
+  {
+    q: "Which communication style is identified as the TARGET SKILL for drug refusal in nurse-led education?",
+    opts: [
+      "Passive — giving in to avoid conflict",
+      "Aggressive — responding with anger or hostility",
+      "Assertive — expressing boundaries firmly and calmly",
+      "Silent — ignoring the offer without response"
+    ],
+    correct: 2,
+    explain: "Assertive communication — expressing boundaries firmly and calmly — is the target refusal skill. Passive responses leave patients vulnerable to relapse; aggressive responses damage relationships and increase relapse risk."
+  },
+  {
+    q: "What is the SUCCESS CRITERIA for the post-session knowledge quiz according to the evaluation plan?",
+    opts: [
+      "50% of patients score 5/10 or higher",
+      "80% of patients score 7/10 or higher",
+      "All patients score a perfect 10/10",
+      "60% of patients demonstrate one refusal strategy"
+    ],
+    correct: 1,
+    explain: "The program's evaluation plan sets a clear benchmark: 80% of patients should score ≥7/10 on the knowledge quiz. This aligns with the SMART objectives of the program."
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+const results = [];
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startQuiz() {
+  current = 0; score = 0; results.length = 0; answered = false;
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[current];
+  answered = false;
+
+  document.getElementById('qCounter').textContent = `Question ${current+1} of ${questions.length}`;
+  document.getElementById('qBadge').textContent = `Q${current+1} / ${questions.length}`;
+  document.getElementById('qFill').style.width = (current / questions.length * 100) + '%';
+  document.getElementById('qText').textContent = q.q;
+
+  const list = document.getElementById('optionsList');
+  list.innerHTML = '';
+  const letters = ['A','B','C','D'];
+
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<span class="opt-letter">${letters[i]}</span>${opt}`;
+    btn.onclick = () => selectAnswer(i, btn);
+    list.appendChild(btn);
+  });
+
+  document.getElementById('explanation').className = 'explanation';
+  document.getElementById('explanation').innerHTML = '';
+  document.getElementById('nextBtn').className = 'next-btn';
+}
+
+function selectAnswer(idx, btn) {
+  if(answered) return;
+  answered = true;
+
+  const q = questions[current];
+  const allBtns = document.querySelectorAll('.opt-btn');
+  allBtns.forEach(b => b.disabled = true);
+
+  if(idx === q.correct) {
+    btn.classList.add('correct');
+    score++;
+    results.push(true);
+  } else {
+    btn.classList.add('wrong');
+    allBtns[q.correct].classList.add('correct');
+    results.push(false);
+  }
+
+  const exp = document.getElementById('explanation');
+  exp.innerHTML = `<strong>Explanation</strong>${q.explain}`;
+  exp.classList.add('show');
+
+  const next = document.getElementById('nextBtn');
+  next.textContent = current === questions.length - 1 ? 'See My Results →' : 'Next Question →';
+  next.classList.add('show');
+}
+
+function nextQuestion() {
+  current++;
+  if(current >= questions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResults() {
+  showScreen('results');
+
+  const pct = Math.round(score / questions.length * 100);
+  const pass = score >= 7;
+
+  document.getElementById('scoreNum').textContent = score;
+  document.getElementById('resultTitle').textContent = pass ? 'Well Done! 🌿' : 'Keep Learning';
+  document.getElementById('resultMsg').textContent = pass
+    ? "You've demonstrated strong knowledge of drug abuse awareness and refusal skills. Great work!"
+    : "You didn't reach the 70% pass mark this time. Review the session materials and try again — recovery is about progress, not perfection.";
+
+  const badge = document.getElementById('resultBadge');
+  badge.textContent = pass ? '✅ PASSED — ' + pct + '%' : '❌ NOT PASSED — ' + pct + '%';
+  badge.className = 'result-badge ' + (pass ? 'badge-pass' : 'badge-fail');
+
+  document.getElementById('bCorrect').textContent = score + ' / 10';
+  document.getElementById('bWrong').textContent = (10 - score) + ' / 10';
+  document.getElementById('bPct').textContent = pct + '%';
+
+  // Animate score ring
+  setTimeout(() => {
+    const circle = document.getElementById('scoreCircle');
+    const circ = 2 * Math.PI * 62;
+    const offset = circ - (score / 10) * circ;
+    circle.style.strokeDashoffset = offset;
+    circle.style.stroke = pass ? '#b9913c' : '#b83232';
+  }, 200);
+}
+
+function resetQuiz() {
+  startQuiz();
+}
+</script>
+</body>
+</html>
